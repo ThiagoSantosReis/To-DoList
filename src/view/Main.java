@@ -29,6 +29,7 @@ public class Main extends javax.swing.JFrame {
     private LocalDate startDate;
     private LocalDate endDate;
     private List<Task> tasks = new ArrayList();
+    private List<Task> completedTasks = new ArrayList<>();
     private DefaultTableModel model;
     private DateTimeFormatter df = DateTimeFormatter.ofPattern("mm/DD/yyyy");
     
@@ -36,6 +37,14 @@ public class Main extends javax.swing.JFrame {
         initComponents();
         tableTasks.requestFocusInWindow();
         model = (DefaultTableModel) tableTasks.getModel();
+    }
+    
+    public void fillModel(){
+        if(!tasks.isEmpty()){
+            for(Task t : tasks){
+                addRowInTable(t);
+            }
+        }
     }
     
     private void addRowInTable(Task t){
@@ -194,8 +203,8 @@ public class Main extends javax.swing.JFrame {
         jScrollPane1.setViewportView(tableTasks);
         if (tableTasks.getColumnModel().getColumnCount() > 0) {
             tableTasks.getColumnModel().getColumn(0).setMinWidth(250);
-            tableTasks.getColumnModel().getColumn(3).setMinWidth(20);
-            tableTasks.getColumnModel().getColumn(3).setMaxWidth(40);
+            tableTasks.getColumnModel().getColumn(3).setMinWidth(40);
+            tableTasks.getColumnModel().getColumn(3).setMaxWidth(50);
         }
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -294,9 +303,21 @@ public class Main extends javax.swing.JFrame {
     private void tableTasksMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableTasksMouseClicked
         // TODO add your handling code here:
         int selectedRow = tableTasks.getSelectedRow();
+        System.out.println(selectedRow);
         if(selectedRow != -1){
             Boolean isTaskDone = (Boolean) model.getValueAt(selectedRow, 3);
-            System.out.println("Tarefa concluida? "+isTaskDone);        }
+            if(isTaskDone){
+                String rowTask = (String)model.getValueAt(selectedRow, 0);
+                Task finishedTask = tasks.stream().filter(x -> x.getTask()
+                        .equalsIgnoreCase(rowTask)).findFirst().orElse(null);
+                JOptionPane.showMessageDialog(null, "Tarefa concluida com sucesso!");
+                tasks.remove(finishedTask);
+                
+                
+            } else{
+                System.out.println("Desativado");
+            }
+        }
     }//GEN-LAST:event_tableTasksMouseClicked
 
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened

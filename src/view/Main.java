@@ -31,7 +31,7 @@ public class Main extends javax.swing.JFrame {
     private List<Task> tasks = new ArrayList();
     private List<Task> completedTasks = new ArrayList<>();
     private DefaultTableModel model;
-    private DateTimeFormatter df = DateTimeFormatter.ofPattern("mm/DD/yyyy");
+    private DateTimeFormatter df = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     
     public Main() {
         initComponents();
@@ -56,13 +56,17 @@ public class Main extends javax.swing.JFrame {
     }
     
     public boolean validateTask(String task){
-        System.out.println("abc: "+task);
         return task.length() != 1; 
     }
     
     public  boolean validateDate(String strDate){
         try{
             endDate = LocalDate.parse(strDate, df);
+            
+            if(endDate.isBefore(startDate)){
+                return false;
+            }
+            
             return true;
         }catch(DateTimeException e){
             return false;
@@ -104,8 +108,11 @@ public class Main extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tableTasks = new javax.swing.JTable();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        JMenuOpenScreen = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
@@ -207,6 +214,16 @@ public class Main extends javax.swing.JFrame {
             tableTasks.getColumnModel().getColumn(3).setMaxWidth(50);
         }
 
+        JMenuOpenScreen.setText("done tasks");
+        JMenuOpenScreen.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                JMenuOpenScreenMouseClicked(evt);
+            }
+        });
+        jMenuBar1.add(JMenuOpenScreen);
+
+        setJMenuBar(jMenuBar1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -233,7 +250,7 @@ public class Main extends javax.swing.JFrame {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(16, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -257,7 +274,6 @@ public class Main extends javax.swing.JFrame {
             txtTask.setForeground(Color.GRAY);
             txtTask.setText("Enter Task");
         }
-        System.out.println(txtTask.getText());
     }//GEN-LAST:event_txtTaskFocusLost
 
     private void txtEndDateFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtEndDateFocusGained
@@ -274,13 +290,13 @@ public class Main extends javax.swing.JFrame {
             txtEndDate.setForeground(Color.GRAY);
             txtEndDate.setText("Enter Date (mm/dd/yyyy)");
         }
-        System.out.println(txtEndDate.getText());
     }//GEN-LAST:event_txtEndDateFocusLost
 
     private void btnInsertActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInsertActionPerformed
         // TODO add your handling code here:
-        if(!validateDate(txtEndDate.getText())){
-            JOptionPane.showMessageDialog(null, "Invalid Date. \nDate must be mm/dd/yyyy format");
+        startDate = LocalDate.now();
+        if(validateDate(txtEndDate.getText()) == false){
+            JOptionPane.showMessageDialog(null, "Invalid Date.");
             return;
         }
         
@@ -289,9 +305,11 @@ public class Main extends javax.swing.JFrame {
             return;
         }
         
+        
         Task t = new Task(txtTask.getText(), startDate, endDate);
         tasks.add(t);
         addRowInTable(t);
+        
         
         txtTask.setText("Enter Task");
         txtEndDate.setText("Enter Date (mm/dd/yyyy)");
@@ -303,20 +321,19 @@ public class Main extends javax.swing.JFrame {
     private void tableTasksMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tableTasksMouseClicked
         // TODO add your handling code here:
         int selectedRow = tableTasks.getSelectedRow();
-        System.out.println(selectedRow);
         if(selectedRow != -1){
             Boolean isTaskDone = (Boolean) model.getValueAt(selectedRow, 3);
             if(isTaskDone){
                 String rowTask = (String)model.getValueAt(selectedRow, 0);
-                Task finishedTask = tasks.stream().filter(x -> x.getTask()
+                Task completedTask = tasks.stream().filter(x -> x.getTask()
                         .equalsIgnoreCase(rowTask)).findFirst().orElse(null);
                 JOptionPane.showMessageDialog(null, "Tarefa concluida com sucesso!");
-                tasks.remove(finishedTask);
+                completedTask.setStatus(TaskStatus.DONE);
+                completedTasks.add(completedTask);
+                tasks.remove(completedTask);
+                model.removeRow(selectedRow);
                 
-                
-            } else{
-                System.out.println("Desativado");
-            }
+            } 
         }
     }//GEN-LAST:event_tableTasksMouseClicked
 
@@ -324,6 +341,12 @@ public class Main extends javax.swing.JFrame {
         // TODO add your handling code here:
         updateTaskStatus();
     }//GEN-LAST:event_formWindowOpened
+
+    private void JMenuOpenScreenMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_JMenuOpenScreenMouseClicked
+        // TODO add your handling code here:
+        new CompletedTasksList(completedTasks, this).setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_JMenuOpenScreenMouseClicked
 
     /**
      * @param args the command line arguments
@@ -361,8 +384,10 @@ public class Main extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JMenu JMenuOpenScreen;
     private javax.swing.JButton btnInsert;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tableTasks;

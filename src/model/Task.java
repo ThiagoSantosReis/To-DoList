@@ -30,11 +30,16 @@ public class Task {
     public LocalDate getStartDate() {
         return startDate;
     }
-
+    
+    
     public LocalDate getEndDate() {
         return endDate;
     }
-
+    
+    public void setStatus(TaskStatus status){
+        this.status = status;
+    }
+    
     public TaskStatus getStatus() {
         return status;
     }
